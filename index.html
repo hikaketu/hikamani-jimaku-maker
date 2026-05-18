@@ -3,9 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport"
-content="width=device-width,initial-scale=1">
+content="width=device-width, initial-scale=1.0">
 
-<title>字幕メーカー Ultimate</title>
+<title>ヒカマニ字幕メーカー Ultimate</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DotGothic16&family=Mochiy+Pop+One&family=Noto+Sans+JP:wght@400;700&family=Rampart+One&display=swap"
+rel="stylesheet">
 
 <style>
 
@@ -14,8 +25,8 @@ background:#111;
 color:white;
 font-family:sans-serif;
 text-align:center;
-margin:0;
 padding:20px;
+margin:0;
 }
 
 h1{
@@ -34,13 +45,16 @@ background:black;
 margin-top:20px;
 }
 
-input,select,button{
+input,
+select,
+button{
 
 margin:8px;
 padding:10px;
 font-size:18px;
-border-radius:10px;
 border:none;
+border-radius:10px;
+
 }
 
 button{
@@ -58,7 +72,7 @@ margin-top:10px;
 <body>
 
 <h1>
-字幕メーカー Ultimate
+ヒカマニ字幕メーカー Ultimate
 </h1>
 
 <div class="controls">
@@ -78,55 +92,47 @@ placeholder="字幕を入力">
 
 <select id="fontSelect">
 
-<option value="Impact">
+<option value="'Noto Sans JP', sans-serif">
+Noto Sans JP
+</option>
+
+<option value="'Mochiy Pop One', sans-serif">
+もちポップ
+</option>
+
+<option value="'Rampart One', sans-serif">
+ランパート
+</option>
+
+<option value="'DotGothic16', sans-serif">
+ドットゴシック
+</option>
+
+<option value="'Bebas Neue', sans-serif">
+Bebas Neue
+</option>
+
+<option value="Impact, sans-serif">
 Impact
 </option>
 
-<option value="Arial Black">
+<option value="'Arial Black', sans-serif">
 Arial Black
 </option>
 
-<option value="Comic Sans MS">
-Comic Sans
-</option>
-
-<option value="sans-serif">
-Sans
-</option>
-
-<option value="serif">
-Serif
-</option>
-
-<option value="monospace">
-Monospace
-</option>
-
-<option value="system-ui">
-system-ui
-</option>
-
-<option value="cursive">
-Cursive
-</option>
-
-<option value="fantasy">
-Fantasy
-</option>
-
-<option value="Meiryo">
-メイリオ
-</option>
-
-<option value="Yu Gothic">
+<option value="'Yu Gothic', sans-serif">
 游ゴシック
 </option>
 
-<option value="MS Gothic">
+<option value="'Meiryo', sans-serif">
+メイリオ
+</option>
+
+<option value="'MS Gothic', sans-serif">
 MSゴシック
 </option>
 
-<option value="MS Mincho">
+<option value="'MS Mincho', serif">
 MS明朝
 </option>
 
@@ -164,7 +170,7 @@ value="#000000">
 type="range"
 id="fontSize"
 min="20"
-max="150"
+max="200"
 value="70">
 
 </label>
@@ -369,11 +375,9 @@ const size =
 fontSize.value;
 
 
+// フォント適用
 ctx.font =
-"bold " +
-size +
-"px " +
-font;
+`bold ${size}px ${font}`;
 
 ctx.textAlign =
 "center";
@@ -393,7 +397,7 @@ textY
 );
 
 
-// 虹色
+// 虹色字幕
 if(rainbow.checked){
 
 const gradient =
@@ -456,7 +460,7 @@ textY
 
 
 // ドラッグ移動
-function moveText(clientX,clientY){
+function moveText(clientX, clientY){
 
 const rect =
 canvas.getBoundingClientRect();
@@ -536,7 +540,7 @@ const link =
 document.createElement("a");
 
 link.download =
-"jimaku.png";
+"hikamani.png";
 
 link.href =
 canvas.toDataURL();
