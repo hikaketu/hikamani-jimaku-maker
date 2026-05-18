@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ヒカマニ字幕メーカー Ultimate</title>
+<title>字幕メーカー Ultimate+</title>
 
 <style>
 body{
@@ -16,7 +16,7 @@ canvas{
     border:3px solid white;
     max-width:95%;
     margin-top:20px;
-    cursor:grab;
+    touch-action:none;
 }
 
 input,select,button{
@@ -29,30 +29,73 @@ input,select,button{
 
 <body>
 
-<h1>ヒカマニ字幕メーカー Ultimate</h1>
+<h1>ヒカマニ字幕メーカー Ultimate+</h1>
 
-<input type="file" id="fileInput"><br>
-
-<input type="text" id="textInput"
-placeholder="字幕を入力">
-
-<select id="fontSelect">
-    <option value="Impact">Impact</option>
-    <option value="Arial Black">Arial Black</option>
-    <option value="sans-serif">標準</option>
-    <option value="serif">明朝</option>
-</select>
+<input type="file" id="fileInput">
 
 <br>
 
-<label>
-<input type="checkbox" id="shake">
-震える文字
-</label>
+<input type="text"
+id="textInput"
+placeholder="字幕を入力">
+
+<select id="fontSelect">
+
+<option value="Impact">Impact</option>
+
+<option value="Arial Black">
+Arial Black
+</option>
+
+<option value="Comic Sans MS">
+Comic Sans
+</option>
+
+<option value="Courier New">
+Courier New
+</option>
+
+<option value="Georgia">
+Georgia
+</option>
+
+<option value="Times New Roman">
+Times New Roman
+</option>
+
+<option value="Verdana">
+Verdana
+</option>
+
+<option value="Trebuchet MS">
+Trebuchet
+</option>
+
+<option value="Meiryo">
+メイリオ
+</option>
+
+<option value="Yu Gothic">
+游ゴシック
+</option>
+
+<option value="MS Gothic">
+MSゴシック
+</option>
+
+<option value="MS Mincho">
+MS明朝
+</option>
+
+</select>
 
 <label>
-<input type="checkbox" id="rainbow">
+
+<input type="checkbox"
+id="rainbow">
+
 虹色字幕
+
 </label>
 
 <br>
@@ -66,18 +109,12 @@ placeholder="字幕を入力">
 <canvas id="canvas"></canvas>
 
 <script>
+
 const canvas =
 document.getElementById("canvas");
 
 const ctx =
 canvas.getContext("2d");
-
-let media = null;
-
-let textX = 300;
-let textY = 300;
-
-let dragging = false;
 
 const textInput =
 document.getElementById("textInput");
@@ -85,205 +122,286 @@ document.getElementById("textInput");
 const fontSelect =
 document.getElementById("fontSelect");
 
-const shakeCheck =
-document.getElementById("shake");
-
 const rainbowCheck =
 document.getElementById("rainbow");
 
-const video =
+const fileInput =
+document.getElementById("fileInput");
+
+let mediaType = "";
+let image = null;
+let video = null;
+
+let textX = 300;
+let textY = 300;
+
+let dragging = false;
+
+
+// ファイル読み込み
+fileInput.addEventListener(
+"change",
+e => {
+
+const file = e.target.files[0];
+
+if(!file) return;
+
+const url =
+URL.createObjectURL(file);
+
+
+// 動画対応
+if(file.type.startsWith("video")){
+
+mediaType = "video";
+
+video =
 document.createElement("video");
 
-video.muted = true;
+video.src = url;
+
+video.autoplay = true;
 video.loop = true;
+video.muted = true;
 
-document.getElementById("fileInput")
-.addEventListener("change", e => {
+video.onloadeddata = () => {
 
-    const file = e.target.files[0];
+canvas.width =
+video.videoWidth;
 
-    if(!file) return;
+canvas.height =
+video.videoHeight;
 
-    const url =
-    URL.createObjectURL(file);
+renderVideo();
+};
 
-    // 動画対応
-    if(file.type.startsWith("video")){
+return;
+}
 
-        video.src = url;
 
-        video.onloadeddata = () => {
+// GIF/画像対応
+mediaType = "image";
 
-            canvas.width =
-            video.videoWidth;
+image = new Image();
 
-            canvas.height =
-            video.videoHeight;
+image.src = url;
 
-            video.play();
+image.onload = () => {
 
-            requestAnimationFrame(drawVideo);
-        }
+canvas.width =
+image.width;
 
-        return;
-    }
+canvas.height =
+image.height;
 
-    // 画像/GIF対応
-    media = new Image();
+renderImage();
+};
 
-    media.onload = () => {
-
-        canvas.width = media.width;
-        canvas.height = media.height;
-
-        draw();
-    }
-
-    media.src = url;
 });
 
-function drawVideo(){
 
-    ctx.drawImage(
-        video,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+// 動画レンダリング
+function renderVideo(){
 
-    drawSubtitle();
+ctx.clearRect(
+0,0,
+canvas.width,
+canvas.height
+);
 
-    requestAnimationFrame(drawVideo);
+ctx.drawImage(
+video,
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+drawSubtitle();
+
+requestAnimationFrame(
+renderVideo
+);
+
 }
 
-function draw(){
 
-    if(!media) return;
+// 画像/GIFレンダリング
+function renderImage(){
 
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+ctx.clearRect(
+0,0,
+canvas.width,
+canvas.height
+);
 
-    ctx.drawImage(
-        media,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+ctx.drawImage(
+image,
+0,
+0,
+canvas.width,
+canvas.height
+);
 
-    drawSubtitle();
+drawSubtitle();
+
+requestAnimationFrame(
+renderImage
+);
+
 }
 
+
+// 字幕描画
 function drawSubtitle(){
 
-    let x = textX;
-    let y = textY;
+const text =
+textInput.value;
 
-    // 震える文字
-    if(shakeCheck.checked){
+const font =
+fontSelect.value;
 
-        x += Math.random()*10-5;
-        y += Math.random()*10-5;
-    }
+ctx.font =
+`bold 70px "${font}"`;
 
-    const text =
-    textInput.value;
+ctx.textAlign = "center";
 
-    const font =
-    fontSelect.value;
+ctx.lineWidth = 10;
 
-    ctx.font =
-    `bold 70px ${font}`;
+ctx.strokeStyle = "black";
 
-    ctx.textAlign = "center";
+ctx.strokeText(
+text,
+textX,
+textY
+);
 
-    ctx.lineWidth = 10;
 
-    ctx.strokeStyle = "black";
+// 虹色字幕
+if(rainbowCheck.checked){
 
-    ctx.strokeText(text,x,y);
+const gradient =
+ctx.createLinearGradient(
+textX-200,
+textY,
+textX+200,
+textY
+);
 
-    // 虹色字幕
-    if(rainbowCheck.checked){
+gradient.addColorStop(0,"red");
+gradient.addColorStop(0.2,"orange");
+gradient.addColorStop(0.4,"yellow");
+gradient.addColorStop(0.6,"green");
+gradient.addColorStop(0.8,"blue");
+gradient.addColorStop(1,"purple");
 
-        const gradient =
-        ctx.createLinearGradient(
-            x-200,
-            y,
-            x+200,
-            y
-        );
+ctx.fillStyle = gradient;
 
-        gradient.addColorStop(0,"red");
-        gradient.addColorStop(0.2,"orange");
-        gradient.addColorStop(0.4,"yellow");
-        gradient.addColorStop(0.6,"green");
-        gradient.addColorStop(0.8,"blue");
-        gradient.addColorStop(1,"purple");
+}else{
 
-        ctx.fillStyle = gradient;
-
-    }else{
-
-        ctx.fillStyle = "red";
-    }
-
-    ctx.fillText(text,x,y);
+ctx.fillStyle = "red";
 }
 
-textInput.addEventListener("input",draw);
-fontSelect.addEventListener("change",draw);
-shakeCheck.addEventListener("change",draw);
-rainbowCheck.addEventListener("change",draw);
+ctx.fillText(
+text,
+textX,
+textY
+);
+
+}
 
 
-// ドラッグ移動
-canvas.addEventListener("mousedown", e => {
+// PCドラッグ
+canvas.addEventListener(
+"mousedown",
+() => dragging = true
+);
 
-    dragging = true;
+canvas.addEventListener(
+"mouseup",
+() => dragging = false
+);
+
+canvas.addEventListener(
+"mousemove",
+e => {
+
+if(!dragging) return;
+
+moveText(
+e.clientX,
+e.clientY
+);
+
 });
 
-canvas.addEventListener("mouseup", () => {
 
-    dragging = false;
+// スマホ対応
+canvas.addEventListener(
+"touchstart",
+() => dragging = true
+);
+
+canvas.addEventListener(
+"touchend",
+() => dragging = false
+);
+
+canvas.addEventListener(
+"touchmove",
+e => {
+
+if(!dragging) return;
+
+const touch =
+e.touches[0];
+
+moveText(
+touch.clientX,
+touch.clientY
+);
+
+e.preventDefault();
+
 });
 
-canvas.addEventListener("mousemove", e => {
 
-    if(!dragging) return;
+// 座標移動
+function moveText(x,y){
 
-    const rect =
-    canvas.getBoundingClientRect();
+const rect =
+canvas.getBoundingClientRect();
 
-    textX =
-    e.clientX - rect.left;
+textX =
+(x - rect.left)
+*
+(canvas.width / rect.width);
 
-    textY =
-    e.clientY - rect.top;
+textY =
+(y - rect.top)
+*
+(canvas.height / rect.height);
 
-    draw();
-});
+}
 
 
 // 保存
 function downloadImage(){
 
-    const link =
-    document.createElement("a");
+const link =
+document.createElement("a");
 
-    link.download =
-    "hikamani.png";
+link.download =
+"hikamani.png";
 
-    link.href =
-    canvas.toDataURL();
+link.href =
+canvas.toDataURL();
 
-    link.click();
+link.click();
+
 }
+
 </script>
 
 </body>
