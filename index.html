@@ -2,46 +2,85 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>字幕メーカー Ultimate+</title>
+<meta name="viewport"
+content="width=device-width,initial-scale=1">
+
+<title>字幕メーカー Ultimate</title>
 
 <style>
+
 body{
-    background:#111;
-    color:white;
-    text-align:center;
-    font-family:sans-serif;
+background:#111;
+color:white;
+font-family:sans-serif;
+text-align:center;
+margin:0;
+padding:20px;
+}
+
+h1{
+font-size:32px;
 }
 
 canvas{
-    border:3px solid white;
-    max-width:95%;
-    margin-top:20px;
-    touch-action:none;
+border:3px solid white;
+max-width:95%;
+margin-top:20px;
+touch-action:none;
+background:black;
+}
+
+.controls{
+margin-top:20px;
 }
 
 input,select,button{
-    margin:8px;
-    padding:10px;
-    font-size:18px;
+
+margin:8px;
+padding:10px;
+font-size:18px;
+border-radius:10px;
+border:none;
 }
+
+button{
+cursor:pointer;
+}
+
+label{
+display:block;
+margin-top:10px;
+}
+
 </style>
 </head>
 
 <body>
 
-<h1>ヒカマニ字幕メーカー Ultimate+</h1>
+<h1>
+字幕メーカー Ultimate
+</h1>
 
-<input type="file" id="fileInput">
+<div class="controls">
+
+<input
+type="file"
+id="fileInput">
 
 <br>
 
-<input type="text"
+<input
+type="text"
 id="textInput"
 placeholder="字幕を入力">
 
+<br>
+
 <select id="fontSelect">
 
-<option value="Impact">Impact</option>
+<option value="Impact">
+Impact
+</option>
 
 <option value="Arial Black">
 Arial Black
@@ -51,24 +90,28 @@ Arial Black
 Comic Sans
 </option>
 
-<option value="Courier New">
-Courier New
+<option value="sans-serif">
+Sans
 </option>
 
-<option value="Georgia">
-Georgia
+<option value="serif">
+Serif
 </option>
 
-<option value="Times New Roman">
-Times New Roman
+<option value="monospace">
+Monospace
 </option>
 
-<option value="Verdana">
-Verdana
+<option value="system-ui">
+system-ui
 </option>
 
-<option value="Trebuchet MS">
-Trebuchet
+<option value="cursive">
+Cursive
+</option>
+
+<option value="fantasy">
+Fantasy
 </option>
 
 <option value="Meiryo">
@@ -89,9 +132,47 @@ MS明朝
 
 </select>
 
+<br>
+
 <label>
 
-<input type="checkbox"
+文字色
+
+<input
+type="color"
+id="textColor"
+value="#ff0000">
+
+</label>
+
+<label>
+
+縁色
+
+<input
+type="color"
+id="strokeColor"
+value="#000000">
+
+</label>
+
+<label>
+
+文字サイズ
+
+<input
+type="range"
+id="fontSize"
+min="20"
+max="150"
+value="70">
+
+</label>
+
+<label>
+
+<input
+type="checkbox"
 id="rainbow">
 
 虹色字幕
@@ -101,8 +182,12 @@ id="rainbow">
 <br>
 
 <button onclick="downloadImage()">
+
 保存
+
 </button>
+
+</div>
 
 <br>
 
@@ -116,21 +201,31 @@ document.getElementById("canvas");
 const ctx =
 canvas.getContext("2d");
 
+const fileInput =
+document.getElementById("fileInput");
+
 const textInput =
 document.getElementById("textInput");
 
 const fontSelect =
 document.getElementById("fontSelect");
 
-const rainbowCheck =
+const textColor =
+document.getElementById("textColor");
+
+const strokeColor =
+document.getElementById("strokeColor");
+
+const fontSize =
+document.getElementById("fontSize");
+
+const rainbow =
 document.getElementById("rainbow");
 
-const fileInput =
-document.getElementById("fileInput");
-
-let mediaType = "";
 let image = null;
 let video = null;
+
+let mediaType = "";
 
 let textX = 300;
 let textY = 300;
@@ -141,9 +236,10 @@ let dragging = false;
 // ファイル読み込み
 fileInput.addEventListener(
 "change",
-e => {
+e=>{
 
-const file = e.target.files[0];
+const file =
+e.target.files[0];
 
 if(!file) return;
 
@@ -161,11 +257,11 @@ document.createElement("video");
 
 video.src = url;
 
-video.autoplay = true;
 video.loop = true;
 video.muted = true;
+video.autoplay = true;
 
-video.onloadeddata = () => {
+video.onloadeddata = ()=>{
 
 canvas.width =
 video.videoWidth;
@@ -173,10 +269,14 @@ video.videoWidth;
 canvas.height =
 video.videoHeight;
 
+video.play();
+
 renderVideo();
+
 };
 
 return;
+
 }
 
 
@@ -187,7 +287,7 @@ image = new Image();
 
 image.src = url;
 
-image.onload = () => {
+image.onload = ()=>{
 
 canvas.width =
 image.width;
@@ -196,16 +296,18 @@ canvas.height =
 image.height;
 
 renderImage();
+
 };
 
 });
 
 
-// 動画レンダリング
+// 動画描画
 function renderVideo(){
 
 ctx.clearRect(
-0,0,
+0,
+0,
 canvas.width,
 canvas.height
 );
@@ -227,11 +329,12 @@ renderVideo
 }
 
 
-// 画像/GIFレンダリング
+// 画像/GIF描画
 function renderImage(){
 
 ctx.clearRect(
-0,0,
+0,
+0,
 canvas.width,
 canvas.height
 );
@@ -262,14 +365,26 @@ textInput.value;
 const font =
 fontSelect.value;
 
+const size =
+fontSize.value;
+
+
 ctx.font =
-`bold 70px "${font}"`;
+"bold " +
+size +
+"px " +
+font;
 
-ctx.textAlign = "center";
+ctx.textAlign =
+"center";
 
-ctx.lineWidth = 10;
+ctx.lineWidth =
+size / 8;
 
-ctx.strokeStyle = "black";
+
+// 縁
+ctx.strokeStyle =
+strokeColor.value;
 
 ctx.strokeText(
 text,
@@ -278,31 +393,59 @@ textY
 );
 
 
-// 虹色字幕
-if(rainbowCheck.checked){
+// 虹色
+if(rainbow.checked){
 
 const gradient =
 ctx.createLinearGradient(
-textX-200,
+textX - 200,
 textY,
-textX+200,
+textX + 200,
 textY
 );
 
-gradient.addColorStop(0,"red");
-gradient.addColorStop(0.2,"orange");
-gradient.addColorStop(0.4,"yellow");
-gradient.addColorStop(0.6,"green");
-gradient.addColorStop(0.8,"blue");
-gradient.addColorStop(1,"purple");
+gradient.addColorStop(
+0,
+"red"
+);
 
-ctx.fillStyle = gradient;
+gradient.addColorStop(
+0.2,
+"orange"
+);
+
+gradient.addColorStop(
+0.4,
+"yellow"
+);
+
+gradient.addColorStop(
+0.6,
+"green"
+);
+
+gradient.addColorStop(
+0.8,
+"blue"
+);
+
+gradient.addColorStop(
+1,
+"purple"
+);
+
+ctx.fillStyle =
+gradient;
 
 }else{
 
-ctx.fillStyle = "red";
+ctx.fillStyle =
+textColor.value;
+
 }
 
+
+// 本文
 ctx.fillText(
 text,
 textX,
@@ -312,20 +455,39 @@ textY
 }
 
 
-// PCドラッグ
+// ドラッグ移動
+function moveText(clientX,clientY){
+
+const rect =
+canvas.getBoundingClientRect();
+
+textX =
+(clientX - rect.left)
+*
+(canvas.width / rect.width);
+
+textY =
+(clientY - rect.top)
+*
+(canvas.height / rect.height);
+
+}
+
+
+// PC
 canvas.addEventListener(
 "mousedown",
-() => dragging = true
+()=> dragging = true
 );
 
 canvas.addEventListener(
 "mouseup",
-() => dragging = false
+()=> dragging = false
 );
 
 canvas.addEventListener(
 "mousemove",
-e => {
+e=>{
 
 if(!dragging) return;
 
@@ -337,20 +499,20 @@ e.clientY
 });
 
 
-// スマホ対応
+// スマホ
 canvas.addEventListener(
 "touchstart",
-() => dragging = true
+()=> dragging = true
 );
 
 canvas.addEventListener(
 "touchend",
-() => dragging = false
+()=> dragging = false
 );
 
 canvas.addEventListener(
 "touchmove",
-e => {
+e=>{
 
 if(!dragging) return;
 
@@ -367,25 +529,6 @@ e.preventDefault();
 });
 
 
-// 座標移動
-function moveText(x,y){
-
-const rect =
-canvas.getBoundingClientRect();
-
-textX =
-(x - rect.left)
-*
-(canvas.width / rect.width);
-
-textY =
-(y - rect.top)
-*
-(canvas.height / rect.height);
-
-}
-
-
 // 保存
 function downloadImage(){
 
@@ -393,7 +536,7 @@ const link =
 document.createElement("a");
 
 link.download =
-"hikamani.png";
+"jimaku.png";
 
 link.href =
 canvas.toDataURL();
@@ -405,4 +548,4 @@ link.click();
 </script>
 
 </body>
-</html>
+    </html>
