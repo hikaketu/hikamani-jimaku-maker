@@ -2,24 +2,25 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ヒカマニ字幕メーカー</title>
+<title>ヒカマニ字幕メーカー Ultimate</title>
 
 <style>
 body{
     background:#111;
     color:white;
-    font-family:sans-serif;
     text-align:center;
+    font-family:sans-serif;
 }
 
 canvas{
     border:3px solid white;
+    max-width:95%;
     margin-top:20px;
-    max-width:90%;
+    cursor:grab;
 }
 
-input,button{
-    margin:10px;
+input,select,button{
+    margin:8px;
     padding:10px;
     font-size:18px;
 }
@@ -28,80 +29,258 @@ input,button{
 
 <body>
 
-<h1>ヒカマニ字幕メーカー</h1>
+<h1>ヒカマニ字幕メーカー Ultimate</h1>
 
-<input type="file" id="imageInput"><br>
+<input type="file" id="fileInput"><br>
 
 <input type="text" id="textInput"
-placeholder="字幕を入力"><br>
+placeholder="字幕を入力">
 
-<button onclick="drawText()">字幕追加</button>
-<button onclick="downloadImage()">保存</button>
+<select id="fontSelect">
+    <option value="Impact">Impact</option>
+    <option value="Arial Black">Arial Black</option>
+    <option value="sans-serif">標準</option>
+    <option value="serif">明朝</option>
+</select>
 
 <br>
+
+<label>
+<input type="checkbox" id="shake">
+震える文字
+</label>
+
+<label>
+<input type="checkbox" id="rainbow">
+虹色字幕
+</label>
+
+<br>
+
+<button onclick="downloadImage()">
+保存
+</button>
+
+<br>
+
 <canvas id="canvas"></canvas>
 
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+const canvas =
+document.getElementById("canvas");
 
-let img = new Image();
+const ctx =
+canvas.getContext("2d");
 
-document.getElementById("imageInput")
-.addEventListener("change", function(e){
+let media = null;
+
+let textX = 300;
+let textY = 300;
+
+let dragging = false;
+
+const textInput =
+document.getElementById("textInput");
+
+const fontSelect =
+document.getElementById("fontSelect");
+
+const shakeCheck =
+document.getElementById("shake");
+
+const rainbowCheck =
+document.getElementById("rainbow");
+
+const video =
+document.createElement("video");
+
+video.muted = true;
+video.loop = true;
+
+document.getElementById("fileInput")
+.addEventListener("change", e => {
 
     const file = e.target.files[0];
-    const reader = new FileReader();
 
-    reader.onload = function(event){
-        img.onload = function(){
+    if(!file) return;
 
-            canvas.width = img.width;
-            canvas.height = img.height;
+    const url =
+    URL.createObjectURL(file);
 
-            ctx.drawImage(img,0,0);
+    // 動画対応
+    if(file.type.startsWith("video")){
+
+        video.src = url;
+
+        video.onloadeddata = () => {
+
+            canvas.width =
+            video.videoWidth;
+
+            canvas.height =
+            video.videoHeight;
+
+            video.play();
+
+            requestAnimationFrame(drawVideo);
         }
 
-        img.src = event.target.result;
+        return;
     }
 
-    reader.readAsDataURL(file);
+    // 画像/GIF対応
+    media = new Image();
+
+    media.onload = () => {
+
+        canvas.width = media.width;
+        canvas.height = media.height;
+
+        draw();
+    }
+
+    media.src = url;
 });
 
-function drawText(){
+function drawVideo(){
 
-    ctx.drawImage(img,0,0);
-
-    const text =
-    document.getElementById("textInput").value;
-
-    ctx.font = "bold 70px sans-serif";
-    ctx.textAlign = "center";
-
-    // 黒縁
-    ctx.lineWidth = 8;
-    ctx.strokeStyle = "black";
-    ctx.strokeText(
-        text,
-        canvas.width/2,
-        canvas.height-80
+    ctx.drawImage(
+        video,
+        0,
+        0,
+        canvas.width,
+        canvas.height
     );
 
-    // 赤文字
-    ctx.fillStyle = "red";
-    ctx.fillText(
-        text,
-        canvas.width/2,
-        canvas.height-80
-    );
+    drawSubtitle();
+
+    requestAnimationFrame(drawVideo);
 }
 
+function draw(){
+
+    if(!media) return;
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    ctx.drawImage(
+        media,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    drawSubtitle();
+}
+
+function drawSubtitle(){
+
+    let x = textX;
+    let y = textY;
+
+    // 震える文字
+    if(shakeCheck.checked){
+
+        x += Math.random()*10-5;
+        y += Math.random()*10-5;
+    }
+
+    const text =
+    textInput.value;
+
+    const font =
+    fontSelect.value;
+
+    ctx.font =
+    `bold 70px ${font}`;
+
+    ctx.textAlign = "center";
+
+    ctx.lineWidth = 10;
+
+    ctx.strokeStyle = "black";
+
+    ctx.strokeText(text,x,y);
+
+    // 虹色字幕
+    if(rainbowCheck.checked){
+
+        const gradient =
+        ctx.createLinearGradient(
+            x-200,
+            y,
+            x+200,
+            y
+        );
+
+        gradient.addColorStop(0,"red");
+        gradient.addColorStop(0.2,"orange");
+        gradient.addColorStop(0.4,"yellow");
+        gradient.addColorStop(0.6,"green");
+        gradient.addColorStop(0.8,"blue");
+        gradient.addColorStop(1,"purple");
+
+        ctx.fillStyle = gradient;
+
+    }else{
+
+        ctx.fillStyle = "red";
+    }
+
+    ctx.fillText(text,x,y);
+}
+
+textInput.addEventListener("input",draw);
+fontSelect.addEventListener("change",draw);
+shakeCheck.addEventListener("change",draw);
+rainbowCheck.addEventListener("change",draw);
+
+
+// ドラッグ移動
+canvas.addEventListener("mousedown", e => {
+
+    dragging = true;
+});
+
+canvas.addEventListener("mouseup", () => {
+
+    dragging = false;
+});
+
+canvas.addEventListener("mousemove", e => {
+
+    if(!dragging) return;
+
+    const rect =
+    canvas.getBoundingClientRect();
+
+    textX =
+    e.clientX - rect.left;
+
+    textY =
+    e.clientY - rect.top;
+
+    draw();
+});
+
+
+// 保存
 function downloadImage(){
 
-    const link = document.createElement("a");
+    const link =
+    document.createElement("a");
 
-    link.download = "hikamani.png";
-    link.href = canvas.toDataURL();
+    link.download =
+    "hikamani.png";
+
+    link.href =
+    canvas.toDataURL();
 
     link.click();
 }
